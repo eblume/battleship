@@ -38,7 +38,7 @@ replaceRow rowNum trans board = map (\(row, i) ->
 replaceCellsForRow :: Int -> Int -> Cell -> [Cell] -> [Cell]
 replaceCellsForRow 0 _ _ row = row
 replaceCellsForRow count start newCell row =
-    [ if (i >= start) && (i < (count + start)) then newCell else cell
+    [ if inRange start (count + start) i then newCell else cell
       | (cell, i) <- zip row [0..] ]
 
 shipSize :: Ship -> Int
@@ -54,10 +54,21 @@ newBoard = replicate 10 $ replicate 10 Nothing
 placeShip :: Ship -> Orientation -> GridRef -> Board -> Board
 placeShip ship Horizontal grid board =
     placeHorizontal (Just ship) (shipSize ship) grid board
+placeShip ship Vertical grid board =
+    placeVertical (Just ship) (shipSize ship) grid board
 
 placeHorizontal :: Cell -> Int -> GridRef -> Board -> Board
 placeHorizontal cell size (row, col) board  = replaceRow row placer board
     where placer = replaceCellsForRow size col cell
+
+placeVertical :: Cell -> Int -> GridRef -> Board -> Board
+placeVertical cell size (row, col) board =
+    [ if inRange row (row + size) i then placer rowCells else rowCells
+      | (rowCells, i) <- zip board [0..] ]
+    where placer = replaceCellsForRow 1 col cell
+
+inRange :: Int -> Int -> Int -> Bool
+inRange lo hi v = lo <= v && v < hi
 
 -------------
 
@@ -66,9 +77,9 @@ board = foldl' (\o f -> f o) newBoard [
         , placeShip Patrol Horizontal (2, 2)
         , placeShip Patrol Horizontal (9, 6)
         , placeShip Submarine Horizontal (0, 5)
-        , placeShip Submarine Horizontal (4, 2)
+        , placeShip Submarine Vertical (4, 2)
         , placeShip Battleship Horizontal (7, 0)
-        , placeShip Carrier Horizontal (8, 3)
+        , placeShip Carrier Vertical (3, 9)
     ]
 
 main :: IO ()
