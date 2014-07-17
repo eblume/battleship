@@ -1,8 +1,6 @@
 import Data.List
 
-data Ship = Ship {shipType::ShipType} deriving Eq
-
-data ShipType = Patrol | Destroyer | Submarine | Battleship | Carrier
+data Ship = Patrol | Destroyer | Submarine | Battleship | Carrier
     deriving (Eq, Ord)
 
 type Cell = Maybe Ship
@@ -12,14 +10,14 @@ type Board = [[Cell]]
 type GridRef = (Int, Int)
 
 -- Ship shortcut aliases
-sP = Just (Ship Patrol)
-sD = Just (Ship Destroyer)
-sS = Just (Ship Submarine)
-sB = Just (Ship Battleship)
-sC = Just (Ship Carrier)
+sP = Just Patrol
+sD = Just Destroyer
+sS = Just Submarine
+sB = Just Battleship
+sC = Just Carrier
 nN = Nothing
 
-instance Show ShipType where
+instance Show Ship where
     show Patrol = "P"
     show Destroyer = "D"
     show Submarine = "S"
@@ -34,7 +32,10 @@ prettyRow = intercalate " " . map prettyCell
 
 prettyCell::Cell->String
 prettyCell Nothing = "·"
-prettyCell (Just ship) = show $ shipType ship
+prettyCell (Just a) = show a
+
+-------------
+
 
 -------------
 
