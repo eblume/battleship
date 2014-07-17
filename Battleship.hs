@@ -3,19 +3,13 @@ import Data.List
 data Ship = Patrol | Destroyer | Submarine | Battleship | Carrier
     deriving (Eq, Ord)
 
+data Orientation = Horizontal | Vertical
+
 type Cell = Maybe Ship
 
 type Board = [[Cell]]
 
 type GridRef = (Int, Int)
-
--- Ship shortcut aliases
-sP = Just Patrol
-sD = Just Destroyer
-sS = Just Submarine
-sB = Just Battleship
-sC = Just Carrier
-nN = Nothing
 
 instance Show Ship where
     show Patrol = "P"
@@ -24,33 +18,58 @@ instance Show Ship where
     show Battleship = "B"
     show Carrier = "C"
 
-prettyBoard::Board->String
+prettyBoard :: Board -> String
 prettyBoard = unlines . map prettyRow
 
-prettyRow::[Cell]->String
-prettyRow = intercalate " " . map prettyCell
+prettyRow :: [Cell] -> String
+prettyRow = unwords . map prettyCell
 
-prettyCell::Cell->String
+prettyCell :: Cell -> String
 prettyCell Nothing = "·"
 prettyCell (Just a) = show a
 
 -------------
 
+replaceRow :: Int -> ([Cell] -> [Cell]) -> Board -> Board
+replaceRow rowNum trans board = map (\(row, i) ->
+        if i == rowNum then trans row else row
+    ) $ zip board [0..]
+
+replaceCellsForRow :: Int -> Int -> Cell -> [Cell] -> [Cell]
+replaceCellsForRow 0 _ _ row = row
+replaceCellsForRow count start newCell row =
+    [ if (i >= start) && (i < (count + start)) then newCell else cell
+      | (cell, i) <- zip row [0..] ]
+
+shipSize :: Ship -> Int
+shipSize Patrol = 2
+shipSize Destroyer = 3
+shipSize Submarine = 3
+shipSize Battleship = 4
+shipSize Carrier = 5
+
+newBoard :: [[Cell]]
+newBoard = replicate 10 $ replicate 10 Nothing
+
+placeShip :: Ship -> Orientation -> GridRef -> Board -> Board
+placeShip ship Horizontal grid board =
+    placeHorizontal (Just ship) (shipSize ship) grid board
+
+placeHorizontal :: Cell -> Int -> GridRef -> Board -> Board
+placeHorizontal cell size (row, col) board  = replaceRow row placer board
+    where placer = replaceCellsForRow size col cell
 
 -------------
 
-row1 = [nN, nN, sD, sD, sD, nN, nN, sS, sS, sS]
-row2 = [nN, nN, nN, nN, nN, nN, nN, sB, nN, nN]
-row3 = [nN, nN, nN, nN, nN, nN, nN, sB, nN, sC]
-row4 = [nN, nN, nN, sS, nN, nN, nN, sB, nN, sC]
-row5 = [nN, nN, nN, sS, nN, nN, nN, sB, nN, sC]
-row6 = [nN, nN, nN, sS, nN, nN, nN, nN, nN, sC]
-row7 = [sP, nN, nN, nN, nN, nN, nN, nN, nN, sC]
-row8 = [sP, nN, nN, nN, nN, nN, nN, nN, nN, sC]
-row9 = [nN, nN, nN, nN, nN, nN, nN, nN, nN, nN]
-row10 = [nN, nN, sP, sP, nN, nN, nN, nN, nN, nN]
-
-board = [row1, row2, row3, row4, row5, row6, row7, row8, row9, row10]
+board = foldl' (\o f -> f o) newBoard [
+          placeShip Destroyer Horizontal (0, 0)
+        , placeShip Patrol Horizontal (2, 2)
+        , placeShip Patrol Horizontal (9, 6)
+        , placeShip Submarine Horizontal (0, 5)
+        , placeShip Submarine Horizontal (4, 2)
+        , placeShip Battleship Horizontal (7, 0)
+        , placeShip Carrier Horizontal (8, 3)
+    ]
 
 main :: IO ()
 main = putStrLn $ prettyBoard board
