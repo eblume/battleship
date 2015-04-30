@@ -43,7 +43,7 @@ shipSize Submarine = 3
 shipSize Battleship = 4
 shipSize Carrier = 5
 
-newBoard :: [[Cell]]
+newBoard :: Board
 newBoard = replicate 10 $ replicate 10 Nothing
 
 makeBoard :: [Placement] -> Board
