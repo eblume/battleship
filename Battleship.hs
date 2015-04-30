@@ -50,10 +50,10 @@ makeBoard :: [Placement] -> Board
 makeBoard = foldl' placeShip $ newBoard
 
 placeShip :: Board -> Placement -> Board
-placeShip board (Placement ship Horizontal gridref) =
-    placeHorizontal (Just ship) (shipSize ship) gridref board
-placeShip board (Placement ship Vertical gridref) =
-    placeVertical (Just ship) (shipSize ship) gridref board
+placeShip board (Placement ship orient gridref) =
+    f (Just ship) (shipSize ship) gridref board
+  where f = case orient of Horizontal -> placeHorizontal
+                           Vertical   -> placeVertical
 
 placeHorizontal :: Cell -> Int -> GridRef -> Board -> Board
 placeHorizontal cell size (row, col) = replaceRow row placer
