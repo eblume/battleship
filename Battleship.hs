@@ -7,7 +7,7 @@ type Cell = Maybe Ship
 type Board = [[Cell]]
 type GridRef = (Int, Int)
 data Placement = Placement Ship Orientation GridRef
-data HitMiss = Hit | Miss
+data HitMiss = Hit | Miss | Empty
 type HitBoard = [[HitMiss]]
 
 instance Show Ship where
@@ -20,6 +20,7 @@ instance Show Ship where
 instance Show HitMiss where
     show Hit = "+"
     show Miss = "~"
+    show Empty = "."
 
 prettyBoard :: Board -> String
 prettyBoard = unlines . map prettyRow
@@ -83,6 +84,17 @@ prettyHitBoard = unlines . map prettyHitRow
 
 prettyHitRow :: [HitMiss] -> String
 prettyHitRow = unwords . map show
+
+-- Overlay hits and misses on a game board
+maskBoard :: HitBoard -> Board -> String
+maskBoard hb b = unlines . map maskRow $ (zip hb b)
+
+maskRow :: ([HitMiss], [Cell]) -> String
+maskRow (hitrow, row) = unwords . map maskCell $ (zip hitrow row)
+
+maskCell :: (HitMiss, Cell) -> String
+maskCell (Empty, cell) = prettyCell cell
+maskCell (hm, _) = show hm
  
 -------------
 
@@ -98,12 +110,12 @@ board = makeBoard [
 
 -- just for debugging
 boardToHitBoard :: Board -> HitBoard
-boardToHitBoard board = [[ case cell of Nothing -> Miss
+boardToHitBoard board = [[ case cell of Nothing -> Empty
                                         Just _  -> Hit
                            | cell <- row ]
                            | row <- board ]
 
 
 main :: IO ()
-main = putStrLn $ prettyHitBoard $ boardToHitBoard board
+main = putStrLn $ maskBoard (boardToHitBoard board) board
 
