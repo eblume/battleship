@@ -7,6 +7,8 @@ type Cell = Maybe Ship
 type Board = [[Cell]]
 type GridRef = (Int, Int)
 data Placement = Placement Ship Orientation GridRef
+data HitMiss = Hit | Miss
+type HitBoard = [[HitMiss]]
 
 instance Show Ship where
     show Patrol = "P"
@@ -14,6 +16,10 @@ instance Show Ship where
     show Submarine = "S"
     show Battleship = "B"
     show Carrier = "C"
+
+instance Show HitMiss where
+    show Hit = "+"
+    show Miss = "~"
 
 prettyBoard :: Board -> String
 prettyBoard = unlines . map prettyRow
@@ -43,6 +49,8 @@ shipSize Submarine = 3
 shipSize Battleship = 4
 shipSize Carrier = 5
 
+------------
+
 newBoard :: Board
 newBoard = replicate 10 $ replicate 10 Nothing
 
@@ -70,6 +78,14 @@ inRange lo hi v = lo <= v && v < hi
 
 -------------
 
+prettyHitBoard :: HitBoard -> String
+prettyHitBoard = unlines . map prettyHitRow
+
+prettyHitRow :: [HitMiss] -> String
+prettyHitRow = unwords . map show
+ 
+-------------
+
 board = makeBoard [
     Placement Destroyer Horizontal (0, 0)
   , Placement Patrol Horizontal (2, 2)
@@ -80,6 +96,14 @@ board = makeBoard [
   , Placement Carrier Vertical (3, 9)
     ]
 
+-- just for debugging
+boardToHitBoard :: Board -> HitBoard
+boardToHitBoard board = [[ case cell of Nothing -> Miss
+                                        Just _  -> Hit
+                           | cell <- row ]
+                           | row <- board ]
+
+
 main :: IO ()
-main = putStrLn $ prettyBoard board
+main = putStrLn $ prettyHitBoard $ boardToHitBoard board
 
